@@ -12,7 +12,6 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                // Explicitly checkout the 'main' branch
                 git branch: 'main', url: 'https://github.com/pankajkush711/microservices-jenkins-docker.git'
             }
         }
@@ -20,8 +19,8 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    bat 'docker build -t %DOCKERHUB_REPO%/user-service ./user-service'
-                    bat 'docker build -t %DOCKERHUB_REPO%/order-service ./order-service'
+                    bat "docker build -t ${env.DOCKERHUB_REPO}/user-service ./user-service"
+                    bat "docker build -t ${env.DOCKERHUB_REPO}/order-service ./order-service"
                 }
             }
         }
@@ -29,9 +28,10 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
-                    bat 'docker push %DOCKERHUB_REPO%/user-service'
-                    bat 'docker push %DOCKERHUB_REPO%/order-service'
+                    // Docker login using credentials
+                    bat "echo ${env.DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${env.DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                    bat "docker push ${env.DOCKERHUB_REPO}/user-service"
+                    bat "docker push ${env.DOCKERHUB_REPO}/order-service"
                 }
             }
         }
@@ -39,15 +39,15 @@ pipeline {
         stage('Deploy Containers') {
             steps {
                 script {
-                    // Stop and remove old containers if running
-                    bat 'docker stop user-service || echo "No existing user-service container"'
-                    bat 'docker rm user-service || echo "No existing user-service container"'
-                    bat 'docker stop order-service || echo "No existing order-service container"'
-                    bat 'docker rm order-service || echo "No existing order-service container"'
+                    // Stop & remove old containers (ignore errors if not exist)
+                    bat 'docker stop user-service || exit 0'
+                    bat 'docker rm user-service || exit 0'
+                    bat 'docker stop order-service || exit 0'
+                    bat 'docker rm order-service || exit 0'
 
                     // Run new containers
-                    bat 'docker run -d -p 5000:5000 --name user-service %DOCKERHUB_REPO%/user-service'
-                    bat 'docker run -d -p 6000:6000 --name order-service %DOCKERHUB_REPO%/order-service'
+                    bat "docker run -d -p 5000:5000 --name user-service ${env.DOCKERHUB_REPO}/user-service"
+                    bat "docker run -d -p 6000:6000 --name order-service ${env.DOCKERHUB_REPO}/order-service"
                 }
             }
         }
