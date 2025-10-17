@@ -19,10 +19,10 @@ pipeline {
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PSW')]) {
-                    bat """
-                    docker logout
-                    echo %DOCKERHUB_PSW% | docker login --username %DOCKERHUB_USER% --password-stdin
-                    """
+                    // Windows-friendly Docker login
+                    bat "docker logout"
+                    bat "docker login -u %DOCKERHUB_USER% -p %DOCKERHUB_PSW%"
+                    bat "docker info"   // Debug: confirm login
                 }
             }
         }
@@ -32,16 +32,16 @@ pipeline {
                 script {
                     bat "docker build -t ${env.DOCKERHUB_REPO}/user-service:latest ./user-service"
                     bat "docker build -t ${env.DOCKERHUB_REPO}/order-service:latest ./order-service"
+                    bat "docker images"  // Debug: check built images
                 }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    bat "docker push ${env.DOCKERHUB_REPO}/user-service:latest"
-                    bat "docker push ${env.DOCKERHUB_REPO}/order-service:latest"
-                }
+                // Push images separately
+                bat "docker push ${env.DOCKERHUB_REPO}/user-service:latest"
+                bat "docker push ${env.DOCKERHUB_REPO}/order-service:latest"
             }
         }
 
