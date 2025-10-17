@@ -5,7 +5,7 @@ pipeline {
         // Jenkins Docker Hub credentials ID (PAT)
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         // Docker Hub username / repository prefix
-        DOCKERHUB_REPO = 'pankajkush711'
+        DOCKERHUB_REPO = 'pankaj711'
     }
 
     stages {
@@ -17,17 +17,15 @@ pipeline {
         }
 
         stage('Docker Login') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PSW')]) {
-            bat """
-            docker logout
-            docker login -u %DOCKERHUB_USER% -p %DOCKERHUB_PSW%
-            """
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PSW')]) {
+                    bat """
+                    docker logout
+                    echo %DOCKERHUB_PSW% | docker login --username %DOCKERHUB_USER% --password-stdin
+                    """
+                }
+            }
         }
-    }
-}
-
-
 
         stage('Build Docker Images') {
             steps {
@@ -50,7 +48,7 @@ pipeline {
         stage('Deploy Containers') {
             steps {
                 script {
-                    // Stop & remove old containers
+                    // Stop & remove old containers if running
                     bat 'docker stop user-service || echo "No running user-service container"'
                     bat 'docker rm user-service || echo "No existing user-service container"'
                     bat 'docker stop order-service || echo "No running order-service container"'
