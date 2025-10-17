@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        // Use your Jenkins Docker Hub credentials ID
+        // Jenkins Docker Hub credentials ID
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
-        // Replace with your Docker Hub username
+        // Docker Hub username
         DOCKERHUB_REPO = 'pankajkush711'
     }
 
@@ -12,7 +12,8 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/pankajkush711/microservices-jenkins-docker.git'
+                // Explicitly checkout the 'main' branch
+                git branch: 'main', url: 'https://github.com/pankajkush711/microservices-jenkins-docker.git'
             }
         }
 
@@ -38,7 +39,7 @@ pipeline {
         stage('Deploy Containers') {
             steps {
                 script {
-                    // Stop and remove old containers if already running
+                    // Stop and remove old containers if running
                     bat 'docker stop user-service || echo "No existing user-service container"'
                     bat 'docker rm user-service || echo "No existing user-service container"'
                     bat 'docker stop order-service || echo "No existing order-service container"'
