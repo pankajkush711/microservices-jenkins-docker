@@ -19,10 +19,14 @@ pipeline {
         stage('Docker Login') {
     steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PSW')]) {
-            bat 'echo %DOCKERHUB_PSW% | docker login -u %DOCKERHUB_USER% --password-stdin'
+            bat """
+            docker logout
+            docker login -u %DOCKERHUB_USER% -p %DOCKERHUB_PSW%
+            """
         }
     }
 }
+
 
 
         stage('Build Docker Images') {
