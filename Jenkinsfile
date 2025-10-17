@@ -17,12 +17,13 @@ pipeline {
         }
 
         stage('Docker Login') {
-            steps {
-                script {
-                    bat "echo ${env.DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${env.DOCKERHUB_CREDENTIALS_USR} --password-stdin"
-                }
-            }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PSW')]) {
+            bat 'echo %DOCKERHUB_PSW% | docker login -u %DOCKERHUB_USER% --password-stdin'
         }
+    }
+}
+
 
         stage('Build Docker Images') {
             steps {
